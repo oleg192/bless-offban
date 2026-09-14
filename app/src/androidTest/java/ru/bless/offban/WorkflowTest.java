@@ -8,7 +8,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static androidx.test.espresso.Espresso.*;
+import androidx.test.espresso.Espresso;
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.action.ViewActions.*;
 import static androidx.test.espresso.assertion.ViewAssertions.*;
 import static androidx.test.espresso.matcher.ViewMatchers.*;
@@ -44,7 +46,7 @@ public final class WorkflowTest {
             input("Petr_Petrov");
             scenario.recreate();
             onView(withId(R.id.entry_input)).check(matches(withText("Petr_Petrov")));
-            closeSoftKeyboard();
+            Espresso.closeSoftKeyboard();
             onView(withText("Готово")).perform(click());
             onView(withId(R.id.command_count)).check(matches(withText("Команд в списке: 2")));
             onData(anything()).inAdapterView(withId(R.id.command_list)).atPosition(1)
@@ -81,7 +83,7 @@ public final class WorkflowTest {
             onView(withId(R.id.entry_input)).check(matches(hasErrorText("Введите причину")));
             input("Причина");
             onView(withText("Далее")).perform(click());
-            closeSoftKeyboard();
+            Espresso.closeSoftKeyboard();
             onView(withText("Готово")).perform(click());
             onView(withId(R.id.entry_input)).check(matches(hasErrorText("Добавьте хотя бы один ник")));
             input("Ivan\nPetr\nAster");
