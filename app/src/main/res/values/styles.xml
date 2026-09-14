@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Bless Offban</string>
+    <item type="id" name="entry_input"/>
+    <item type="id" name="add_group"/>
+    <item type="id" name="command_count"/>
+    <item type="id" name="command_list"/>
+    <item type="id" name="command"/>
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#F36B58</item>
+        <item name="android:windowBackground">#101216</item>
+        <item name="android:colorBackground">#101216</item>
+        <item name="android:textColorPrimary">#F5F6FA</item>
+        <item name="android:textColorSecondary">#ADB4C2</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>
