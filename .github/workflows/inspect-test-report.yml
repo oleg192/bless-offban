@@ -1,0 +1,36 @@
+name: Inspect test report
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/inspect-test-report.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  report:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: verification-reports
+          path: reports
+          repository: oleg192/bless-offban
+          run-id: 34885991498
+          github-token: ${{ github.token }}
+      - name: Print UI test failure
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          class Plain(HTMLParser):
+              def handle_data(self, data):
+                  if data.strip():
+                      print(data.strip())
+          paths = list(Path("reports").rglob("ru.bless.offban.WorkflowTest.html"))
+          if not paths:
+              raise SystemExit("Test report not found")
+          for path in paths:
+              print("REPORT:", path)
+              Plain().feed(path.read_text())
+          PY
