@@ -1,0 +1,12 @@
+node_modules/
+web/game.bundle.js
+web/audio/
+app/src/main/assets/game/
+app/build/
+.gradle/
+local.properties
+dist/
+qa/
+*.keystore
+*.jks
+*.p12

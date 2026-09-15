@@ -1,0 +1,77 @@
+name: Build Sky Strike APK
+on:
+  push:
+    branches: [sky-strike-prototype]
+    paths: ['web/**', 'app/**', 'test/**', 'tools/build.mjs', '*.gradle', 'gradle.properties', 'package*.json', '.github/workflows/build-game.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  game:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.11.1'}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm}
+      - name: Build complete offline game assets
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng
+          python3 tools/make_audio.py
+          npm run build
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;35.0.0"
+      - name: Compile and lint
+        run: gradle --no-daemon :app:assembleRelease :app:assembleDebug :app:assembleDebugAndroidTest :app:lintRelease
+      - name: Enable acceleration
+        run: sudo chmod a+rw /dev/kvm
+      - name: Verify offline game on Android 16
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          ram-size: 3072M
+          emulator-boot-timeout: 420
+          disable-animations: true
+          script: |
+            gradle --no-daemon :app:connectedDebugAndroidTest
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb shell am start -W -n ru.bless.skystrike/.MainActivity
+            sleep 8
+            mkdir -p app/build/reports/preview
+            adb exec-out screencap -p > app/build/reports/preview/menu.png
+      - name: Collect game package
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/Sky-Strike-0.1.0-unsigned.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions dist/Sky-Strike-0.1.0-unsigned.apk
+          python3 - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('dist/Sky-Strike-0.1.0-unsigned.apk') as z:
+              assert len([p for p in z.namelist() if p.startswith('assets/game/audio/') and p.endswith('.wav')]) == 14
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: Sky-Strike-0.1.0-unsigned, path: dist/, retention-days: 90}
+      - name: Show test failures
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          class Text(HTMLParser):
+              def handle_data(self, data):
+                  if data.strip(): print(data.strip())
+          for p in Path('app/build/reports/androidTests').rglob('ru.bless.skystrike.OfflineGameTest.html'):
+              Text().feed(p.read_text())
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: game-verification, path: app/build/reports/, retention-days: 30}
