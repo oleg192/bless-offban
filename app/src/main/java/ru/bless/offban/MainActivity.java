@@ -24,14 +24,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 public final class MainActivity extends Activity {
     private final ArrayList<Entry> entries = new ArrayList<>();
     private final ArrayList<String> draft = new ArrayList<>();
-    private final HashSet<String> copied = new HashSet<>();
     private SharedPreferences prefs;
     private LinearLayout root;
     private TextView count;
@@ -140,7 +138,7 @@ public final class MainActivity extends Activity {
             .setMessage("Все созданные команды будут удалены с этого телефона.")
             .setNegativeButton("Отмена", null)
             .setPositiveButton("Очистить", (d, w) -> {
-                entries.clear(); copied.clear(); persist(); refresh();
+                entries.clear(); persist(); refresh();
             }).show());
         LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(-1, dp(48));
         clearParams.topMargin = dp(8);
@@ -365,20 +363,23 @@ public final class MainActivity extends Activity {
             command.setTextIsSelectable(true);
             padVertical(command, 12);
             card.addView(command);
-            Button copy = button(copied.contains(entry.id) ? "Скопировано ✓" : "Копировать", false);
+            Button copy = button("Копировать", false);
             copy.setContentDescription("Копировать команду для " + entry.nick);
             copy.setOnClickListener(v -> {
+                if (!entries.contains(entry)) return;
                 try {
                     ClipboardManager manager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                     if (manager == null) throw new IllegalStateException();
                     manager.setPrimaryClip(ClipData.newPlainText("Команда offban", entry.command()));
-                    copied.add(entry.id);
-                    copy.setText("Скопировано ✓");
-                    if (Build.VERSION.SDK_INT < 33)
-                        Toast.makeText(MainActivity.this, "Команда скопирована", Toast.LENGTH_SHORT).show();
                 } catch (RuntimeException ex) {
                     Toast.makeText(MainActivity.this, "Не удалось скопировать команду", Toast.LENGTH_SHORT).show();
+                    return;
                 }
+                entries.remove(entry);
+                persist();
+                refresh();
+                if (Build.VERSION.SDK_INT < 33)
+                    Toast.makeText(MainActivity.this, "Команда скопирована", Toast.LENGTH_SHORT).show();
             });
             card.addView(copy, new LinearLayout.LayoutParams(-1, dp(48)));
             return outer;
