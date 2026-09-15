@@ -41,7 +41,25 @@ jobs:
           ram-size: 2048M
           emulator-boot-timeout: 420
           disable-animations: true
-          script: gradle --no-daemon :app:connectedDebugAndroidTest
+          script: |
+            gradle --no-daemon :app:connectedDebugAndroidTest
+            adb shell am start -W -n ru.bless.offban/.MainActivity
+            sleep 1
+            mkdir -p app/build/reports/preview
+            adb exec-out screencap -p > app/build/reports/preview/main.png
+      - name: Print UI failure details
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          class Plain(HTMLParser):
+              def handle_data(self, data):
+                  if data.strip():
+                      print(data.strip())
+          for path in Path("app/build/reports/androidTests").rglob("ru.bless.offban.WorkflowTest.html"):
+              Plain().feed(path.read_text())
+          PY
       - name: Collect installable APK
         run: |
           mkdir -p dist

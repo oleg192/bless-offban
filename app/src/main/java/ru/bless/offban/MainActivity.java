@@ -42,6 +42,7 @@ public final class MainActivity extends Activity {
     private TextView draftCount;
     private String reason = "", typed = "";
     private int step = 0;
+    private boolean restoreInputOnResume;
     private boolean healthyStorage = true;
 
     private static final int BG = Color.rgb(16, 18, 22);
@@ -64,14 +65,20 @@ public final class MainActivity extends Activity {
         prefs = getSharedPreferences("offban_v1", MODE_PRIVATE);
         load();
         buildScreen();
-        if (step != 0 && healthyStorage) root.post(() -> {
-            if (!isFinishing() && !isDestroyed()) openStep();
-        });
+        restoreInputOnResume = step != 0 && healthyStorage;
         if (!healthyStorage) {
             new AlertDialog.Builder(this).setTitle("Не удалось прочитать список")
                 .setMessage("Сохранённые данные оставлены без изменений. Закройте приложение и попробуйте открыть его снова.")
                 .setPositiveButton("Закрыть", (d, w) -> finish())
                 .setCancelable(false).show();
+        }
+    }
+
+    @Override protected void onPostResume() {
+        super.onPostResume();
+        if (restoreInputOnResume) {
+            restoreInputOnResume = false;
+            openStep();
         }
     }
 

@@ -14,6 +14,7 @@ import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.action.ViewActions.*;
 import static androidx.test.espresso.assertion.ViewAssertions.*;
 import static androidx.test.espresso.matcher.ViewMatchers.*;
+import static androidx.test.espresso.matcher.RootMatchers.isDialog;
 import static org.hamcrest.Matchers.anything;
 import static org.junit.Assert.*;
 
@@ -25,7 +26,7 @@ public final class WorkflowTest {
     }
 
     private void input(String text) {
-        onView(withId(R.id.entry_input)).perform(replaceText(text), closeSoftKeyboard());
+        onView(withId(R.id.entry_input)).inRoot(isDialog()).perform(replaceText(text), closeSoftKeyboard());
     }
 
     @Test public void wizardCopiesExactCommandAndRestoresDraftAndSavedGroups() {
@@ -36,27 +37,27 @@ public final class WorkflowTest {
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
             onView(withId(R.id.add_group)).perform(click());
             input(reason);
-            onView(withText("Далее")).perform(click());
+            onView(withText("Далее")).inRoot(isDialog()).perform(click());
             input("Ivan_Ivanov");
-            onView(withText("Добавить ещё")).perform(click());
-            onView(withId(R.id.entry_input)).check(matches(withText("")));
+            onView(withText("Добавить ещё")).inRoot(isDialog()).perform(click());
+            onView(withId(R.id.entry_input)).inRoot(isDialog()).check(matches(withText("")));
             input("ivan_ivanov");
-            onView(withText("Добавить ещё")).perform(click());
-            onView(withId(R.id.entry_input)).check(matches(hasErrorText("Этот ник уже добавлен")));
+            onView(withText("Добавить ещё")).inRoot(isDialog()).perform(click());
+            onView(withId(R.id.entry_input)).inRoot(isDialog()).check(matches(hasErrorText("Этот ник уже добавлен")));
             input("Petr_Petrov");
             scenario.recreate();
-            onView(withId(R.id.entry_input)).check(matches(withText("Petr_Petrov")));
+            onView(withId(R.id.entry_input)).inRoot(isDialog()).check(matches(withText("Petr_Petrov")));
             Espresso.closeSoftKeyboard();
-            onView(withText("Готово")).perform(click());
+            onView(withText("Готово")).inRoot(isDialog()).perform(click());
             onView(withId(R.id.command_count)).check(matches(withText("Команд в списке: 2")));
             onData(anything()).inAdapterView(withId(R.id.command_list)).atPosition(1)
                 .onChildView(withId(R.id.command)).check(matches(withText(second)));
 
             onView(withId(R.id.add_group)).perform(click());
             input("Игнорирование требований");
-            onView(withText("Далее")).perform(click());
+            onView(withText("Далее")).inRoot(isDialog()).perform(click());
             input("Aster_Noir");
-            onView(withText("Готово")).perform(click());
+            onView(withText("Готово")).inRoot(isDialog()).perform(click());
             scenario.recreate();
             onView(withId(R.id.command_count)).check(matches(withText("Команд в списке: 3")));
             onData(anything()).inAdapterView(withId(R.id.command_list)).atPosition(0)
@@ -79,19 +80,19 @@ public final class WorkflowTest {
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
             onView(withId(R.id.add_group)).perform(click());
             input("   ");
-            onView(withText("Далее")).perform(click());
-            onView(withId(R.id.entry_input)).check(matches(hasErrorText("Введите причину")));
+            onView(withText("Далее")).inRoot(isDialog()).perform(click());
+            onView(withId(R.id.entry_input)).inRoot(isDialog()).check(matches(hasErrorText("Введите причину")));
             input("Причина");
-            onView(withText("Далее")).perform(click());
+            onView(withText("Далее")).inRoot(isDialog()).perform(click());
             Espresso.closeSoftKeyboard();
-            onView(withText("Готово")).perform(click());
-            onView(withId(R.id.entry_input)).check(matches(hasErrorText("Добавьте хотя бы один ник")));
+            onView(withText("Готово")).inRoot(isDialog()).perform(click());
+            onView(withId(R.id.entry_input)).inRoot(isDialog()).check(matches(hasErrorText("Добавьте хотя бы один ник")));
             input("Ivan\nPetr\nAster");
-            onView(withText("Добавить ещё")).perform(click());
-            onView(withId(R.id.entry_input)).check(matches(hasErrorText("Введите один ник без пробелов и слешей")));
+            onView(withText("Добавить ещё")).inRoot(isDialog()).perform(click());
+            onView(withId(R.id.entry_input)).inRoot(isDialog()).check(matches(hasErrorText("Введите один ник без пробелов и слешей")));
             input("Ivan_Ivanov");
-            onView(withText("Добавить ещё")).perform(click());
-            onView(withText("Готово")).perform(click());
+            onView(withText("Добавить ещё")).inRoot(isDialog()).perform(click());
+            onView(withText("Готово")).inRoot(isDialog()).perform(click());
             onView(withId(R.id.command_count)).check(matches(withText("Команд в списке: 1")));
         }
     }
