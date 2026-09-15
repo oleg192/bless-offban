@@ -1,0 +1,28 @@
+name: Prepare offline assets
+on:
+  push:
+    branches: [sky-strike-prototype]
+    paths: ['tools/make_audio.py', '.github/workflows/prepare-assets.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate embedded voice recordings
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng
+          python3 tools/make_audio.py
+          mkdir -p assets-output
+          cp -r web/audio assets-output/audio
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0"
+          cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" assets-output/apksigner.jar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sky-strike-offline-assets
+          path: assets-output/
+          retention-days: 30
