@@ -6,8 +6,10 @@ import androidx.test.core.app.ActivityScenario;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import androidx.test.espresso.Espresso;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.Espresso.onData;
@@ -19,6 +21,8 @@ import static org.hamcrest.Matchers.anything;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
+// Finish with the clipboard scenario so its system preview cannot intercept the next test's taps.
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class WorkflowTest {
     @Before public void reset() {
         Context context = ApplicationProvider.getApplicationContext();
