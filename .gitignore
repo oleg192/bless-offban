@@ -10,3 +10,5 @@ qa/
 *.keystore
 *.jks
 *.p12
+tools/apksigner.jar
+signing/
